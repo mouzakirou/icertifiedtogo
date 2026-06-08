@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>iCertifiedTogo — Agent IA</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',sans-serif;background:#000;color:#fff;min-height:100vh;}
+
+  .header{padding:24px 20px 16px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:12px;}
+  .logo{width:36px;height:36px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .logo span{font-weight:700;font-size:18px;color:#000;}
+  .logo-dot{width:5px;height:5px;background:#1D9E75;border-radius:50%;position:absolute;margin-top:20px;margin-left:18px;}
+  .brand{font-size:16px;font-weight:600;}
+  .brand em{color:#1D9E75;font-style:normal;}
+  .subtitle{font-size:11px;color:#555;margin-top:2px;}
+
+  .container{max-width:680px;margin:0 auto;padding:20px;}
+  .section-title{font-size:11px;font-weight:600;color:#444;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:#666;margin-bottom:6px;}
+  .field input,.field textarea,.field select{
+    width:100%;background:#0f0f0f;border:1px solid #222;border-radius:10px;
+    color:#fff;font-family:'Inter',sans-serif;font-size:14px;padding:12px 14px;
+    outline:none;transition:border .2s;resize:none;
+  }
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:#1D9E75;}
+  .field select option{background:#0f0f0f;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  /* Zone upload photos */
+  .photo-zone{
+    border:1.5px dashed #2a2a2a;border-radius:12px;padding:20px;text-align:center;
+    cursor:pointer;transition:border .2s;background:#0a0a0a;position:relative;
+  }
+  .photo-zone:hover{border-color:#1D9E75;}
+  .photo-zone.drag{border-color:#1D9E75;background:#0a1a10;}
+  .photo-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .photo-zone .icon{font-size:28px;margin-bottom:8px;}
+  .photo-zone p{font-size:13px;color:#555;}
+  .photo-zone p span{color:#1D9E75;}
+
+  .photos-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .photo-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid #222;}
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;}
+  .photo-thumb .remove{position:absolute;top:2px;right:2px;background:#000;border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .photo-count{font-size:11px;color:#444;margin-top:6px;}
+
+  .btn-analyze{
+    width:100%;padding:14px;background:#1D9E75;border:none;border-radius:12px;
+    color:#fff;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;
+    cursor:pointer;transition:opacity .2s;margin-top:6px;
+  }
+  .btn-analyze:hover{opacity:.85;}
+  .btn-analyze:disabled{opacity:.4;cursor:not-allowed;}
+
+  .loading{display:none;text-align:center;padding:32px 0;}
+  .loading .spinner{width:32px;height:32px;border:2px solid #1a1a1a;border-top:2px solid #1D9E75;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+  .loading p{font-size:13px;color:#555;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .result{display:none;margin-top:20px;}
+  .score-card{background:#0f0f0f;border:1px solid #1a1a1a;border-radius:14px;padding:20px;margin-bottom:14px;text-align:center;}
+  .score-number{font-size:56px;font-weight:700;line-height:1;}
+  .score-label{font-size:12px;color:#555;margin-top:4px;}
+  .score-bar{height:4px;background:#1a1a1a;border-radius:2px;margin-top:14px;overflow:hidden;}
+  .score-fill{height:100%;border-radius:2px;width:0%;transition:width 1s ease;}
+
+  .alert{border-radius:12px;padding:14px 16px;margin-bottom:10px;font-size:13px;line-height:1.6;}
+  .alert-danger{background:#1a0a0a;border:1px solid #3a1515;color:#f09595;}
+  .alert-warn{background:#1a1200;border:1px solid #3a2e00;color:#EF9F27;}
+  .alert-ok{background:#0a1a10;border:1px solid #0f3a1f;color:#5DCAA5;}
+
+  .block{background:#0f0f0f;border:1px solid #1a1a1a;border-radius:14px;padding:18px;margin-bottom:12px;}
+  .block h3{font-size:12px;font-weight:600;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;}
+  .block p,.block li{font-size:13px;color:#ccc;line-height:1.7;}
+  .block ul{padding-left:16px;}
+  .block li{margin-bottom:4px;}
+
+  .improved-text{background:#0a1a10;border:1px solid #0f3a1f;border-radius:10px;padding:14px;font-size:13px;color:#9FE1CB;line-height:1.7;white-space:pre-wrap;}
+  .hours-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+  .hour-pill{background:#111;border:1px solid #1D9E75;border-radius:8px;padding:8px;text-align:center;font-size:12px;color:#1D9E75;font-weight:600;}
+  .hour-pill span{display:block;font-size:10px;color:#444;font-weight:400;margin-top:2px;}
+
+  .photo-analysis{background:#0f0f0f;border:1px solid #1a1a1a;border-radius:14px;padding:18px;margin-bottom:12px;}
+  .photo-analysis h3{font-size:12px;font-weight:600;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;}
+  .photo-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #1a1a1a;}
+  .photo-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+  .photo-item img{width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;}
+  .photo-item-info{flex:1;}
+  .photo-item-score{font-size:11px;font-weight:600;margin-bottom:4px;}
+  .photo-item-text{font-size:12px;color:#888;line-height:1.5;}
+
+  .divider{height:1px;background:#111;margin:20px 0;}
+  .tabs{display:flex;gap:8px;margin-bottom:20px;}
+  .tab{flex:1;padding:10px;background:#0f0f0f;border:1px solid #1a1a1a;border-radius:10px;font-size:13px;color:#555;cursor:pointer;text-align:center;transition:all .2s;}
+  .tab.active{border-color:#1D9E75;color:#1D9E75;background:#0a1a10;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="position:relative;">
+    <div class="logo"><span>i</span></div>
+    <div class="logo-dot"></div>
+  </div>
+  <div>
+    <div class="brand">iCertified<em>Togo</em> — Agent IA</div>
+    <div class="subtitle">Analyse tes annonces avant de poster</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="field" style="margin-top:8px;">
+    <div class="section-title">Ton annonce</div>
+  </div>
+
+  <div class="field">
+    <label>Titre de l'annonce</label>
+    <input type="text" id="titre" placeholder="Ex: iPhone 12 Pro 128Go Direct — Lomé"/>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Produit</label>
+      <select id="produit">
+        <option value="">Choisir...</option>
+        <option>iPhone (direct)</option>
+        <option>iPhone (bypass)</option>
+        <option>AirPods</option>
+        <option>Accessoire iPhone</option>
+        <option>Autre téléphone</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Prix (FCFA)</label>
+      <input type="number" id="prix" placeholder="Ex: 95000"/>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Description de l'annonce</label>
+    <textarea id="description" rows="4" placeholder="Ex: iPhone 12 Pro 128Go direct, tout fonctionne, batterie 87%, vendu avec chargeur. Livraison possible sur Lomé."></textarea>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Où tu vas poster ?</label>
+      <select id="canal">
+        <option value="">Choisir...</option>
+        <option>Facebook Marketplace</option>
+        <option>Groupe Facebook téléphones</option>
+        <option>Les deux</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Livraison proposée ?</label>
+      <select id="livraison">
+        <option value="">Choisir...</option>
+        <option>Oui, gratuite</option>
+        <option>Oui, payante</option>
+        <option>Non</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ZONE PHOTOS -->
+  <div class="field">
+    <label>Photos du produit (optionnel mais recommandé)</label>
+    <div class="photo-zone" id="photoZone">
+      <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotos(event)"/>
+      <div class="icon">📸</div>
+      <p>Clique ou glisse tes photos ici<br><span>L'IA analysera la qualité de chaque photo</span></p>
+    </div>
+    <div class="photos-preview" id="photosPreview"></div>
+    <div class="photo-count" id="photoCount"></div>
+  </div>
+
+  <button class="btn-analyze" id="btnAnalyze" onclick="analyzeAnnonce()">
+    Analyser mon annonce →
+  </button>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p id="loadingMsg">Analyse en cours...</p>
+  </div>
+
+  <div class="result" id="result"></div>
+
+</div>
+
+<script>
+let uploadedPhotos = [];
+
+const MESSAGES = [
+  "Vérification des règles Facebook...",
+  "Analyse de tes photos...",
+  "Détection des risques de refus...",
+  "Génération des recommandations..."
+];
+
+function handlePhotos(e){
+  const files = Array.from(e.target.files);
+  files.forEach(file => {
+    if(uploadedPhotos.length >= 5) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      uploadedPhotos.push({name: file.name, data: ev.target.result});
+      renderPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPreviews(){
+  const preview = document.getElementById('photosPreview');
+  const count = document.getElementById('photoCount');
+  preview.innerHTML = uploadedPhotos.map((p,i) => `
+    <div class="photo-thumb">
+      <img src="${p.data}" alt="photo ${i+1}"/>
+      <button class="remove" onclick="removePhoto(${i})">×</button>
+    </div>
+  `).join('');
+  count.textContent = uploadedPhotos.length > 0 ? `${uploadedPhotos.length} photo(s) ajoutée(s) — max 5` : '';
+}
+
+function removePhoto(i){
+  uploadedPhotos.splice(i,1);
+  renderPreviews();
+}
+
+// Drag & drop
+const zone = document.getElementById('photoZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag');
+  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+  files.forEach(file => {
+    if(uploadedPhotos.length >= 5) return;
+    const reader = new FileReader();
+    reader.onload = ev => { uploadedPhotos.push({name: file.name, data: ev.target.result}); renderPreviews(); };
+    reader.readAsDataURL(file);
+  });
+});
+
+function analyzeAnnonce(){
+  const titre = document.getElementById('titre').value.trim();
+  const description = document.getElementById('description').value.trim();
+  const prix = document.getElementById('prix').value.trim();
+  const produit = document.getElementById('produit').value;
+  const canal = document.getElementById('canal').value;
+  const livraison = document.getElementById('livraison').value;
+
+  if(!titre || !description || !prix || !produit || !canal || !livraison){
+    alert("Remplis tous les champs avant d'analyser.");
+    return;
+  }
+
+  document.getElementById('btnAnalyze').disabled = true;
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('result').style.display = 'none';
+
+  let msgIdx = 0;
+  document.getElementById('loadingMsg').textContent = MESSAGES[0];
+  const msgInterval = setInterval(()=>{
+    msgIdx = (msgIdx+1) % MESSAGES.length;
+    document.getElementById('loadingMsg').textContent = MESSAGES[msgIdx];
+  }, 1200);
+
+  const hasPhotos = uploadedPhotos.length > 0;
+  const photoInfo = hasPhotos
+    ? `PHOTOS: ${uploadedPhotos.length} photo(s) uploadée(s) et analysées visuellement`
+    : `PHOTOS: Aucune photo fournie`;
+
+  const prompt = `Tu es un expert en vente de téléphones sur Facebook Marketplace en Afrique de l'Ouest (Togo, Lomé).
+
+Annonce à analyser :
+TITRE: ${titre}
+PRODUIT: ${produit}
+PRIX: ${prix} FCFA
+DESCRIPTION: ${description}
+CANAL: ${canal}
+LIVRAISON: ${livraison}
+${photoInfo}
+
+${hasPhotos ? `Pour chaque photo analysée, évalue la qualité visuelle (éclairage, cadrage, fond, netteté) et si elle peut causer un refus Facebook.` : ''}
+
+Réponds UNIQUEMENT en JSON valide sans backticks :
+{
+  "score": <0-10>,
+  "score_label": "<Faible|Moyen|Bon|Excellent>",
+  "risques_refus": [{"niveau":"<danger|warn>","raison":"<court>","detail":"<explication>"}],
+  "analyse_photos": ${hasPhotos ? `[{"index":<0-based>,"score":"<Bonne|Moyenne|Mauvaise>","couleur":"<ok|warn|danger>","commentaire":"<conseil court>"}]` : 'null'},
+  "points_forts": ["..."],
+  "points_faibles": ["..."],
+  "annonce_amelioree": "<titre amélioré\\n\\ndescription améliorée>",
+  "meilleures_heures": [{"heure":"<ex:18h-20h>","raison":"<court>"},{"heure":"...","raison":"..."},{"heure":"...","raison":"..."}],
+  "conseil_final": "<conseil court>"
+}`;
+
+  // Build messages with images if any
+  let userContent;
+  if(hasPhotos){
+    userContent = [
+      { type: "text", text: prompt },
+      ...uploadedPhotos.map(p => ({
+        type: "image",
+        source: { type: "base64", media_type: "image/jpeg", data: p.data.split(',')[1] }
+      }))
+    ];
+  } else {
+    userContent = prompt;
+  }
+
+  fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      model:"claude-sonnet-4-20250514",
+      max_tokens:1200,
+      messages:[{role:"user", content: userContent}]
+    })
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    clearInterval(msgInterval);
+    const text = data.content.map(i=>i.text||"").join("");
+    let json;
+    try{ json = JSON.parse(text.replace(/```json|```/g,"").trim()); }
+    catch(e){ showError("Erreur de parsing. Réessaie."); return; }
+    showResult(json);
+  })
+  .catch(()=>{ clearInterval(msgInterval); showError("Erreur réseau."); });
+}
+
+function showError(msg){
+  document.getElementById('btnAnalyze').disabled = false;
+  document.getElementById('loading').style.display = 'none';
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.innerHTML = `<div class="alert alert-danger">${msg}</div>`;
+}
+
+function showResult(d){
+  document.getElementById('btnAnalyze').disabled = false;
+  document.getElementById('loading').style.display = 'none';
+
+  const scoreColor = d.score >= 8 ? '#1D9E75' : d.score >= 5 ? '#EF9F27' : '#E24B4A';
+
+  let risquesHtml = '';
+  if(d.risques_refus && d.risques_refus.length > 0){
+    d.risques_refus.forEach(r=>{
+      const cls = r.niveau==='danger' ? 'alert-danger' : 'alert-warn';
+      const icon = r.niveau==='danger' ? '⛔' : '⚠️';
+      risquesHtml += `<div class="alert ${cls}">${icon} <strong>${r.raison}</strong><br>${r.detail}</div>`;
+    });
+  } else {
+    risquesHtml = `<div class="alert alert-ok">✓ Aucun risque de refus détecté</div>`;
+  }
+
+  // Analyse photos
+  let photosHtml = '';
+  if(d.analyse_photos && d.analyse_photos.length > 0){
+    const items = d.analyse_photos.map((p,i)=>{
+      const col = p.couleur==='ok' ? '#1D9E75' : p.couleur==='warn' ? '#EF9F27' : '#E24B4A';
+      const photo = uploadedPhotos[p.index] || uploadedPhotos[i];
+      return `
+        <div class="photo-item">
+          ${photo ? `<img src="${photo.data}" alt="photo"/>` : ''}
+          <div class="photo-item-info">
+            <div class="photo-item-score" style="color:${col}">Photo ${(p.index||i)+1} — ${p.score}</div>
+            <div class="photo-item-text">${p.commentaire}</div>
+          </div>
+        </div>`;
+    }).join('');
+    photosHtml = `
+      <div class="photo-analysis">
+        <h3>📸 Analyse des photos</h3>
+        ${items}
+      </div>`;
+  } else if(uploadedPhotos.length === 0){
+    photosHtml = `<div class="alert alert-warn">⚠️ Aucune photo — Les annonces avec photos reçoivent 3x plus de messages</div>`;
+  }
+
+  const fortsHtml = (d.points_forts||[]).map(p=>`<li>${p}</li>`).join('');
+  const faiblesHtml = (d.points_faibles||[]).map(p=>`<li>${p}</li>`).join('');
+  const heuresHtml = (d.meilleures_heures||[]).map(h=>`<div class="hour-pill">${h.heure}<span>${h.raison}</span></div>`).join('');
+
+  const r = document.getElementById('result');
+  r.style.display = 'block';
+  r.innerHTML = `
+    <div class="section-title">Résultat de l'analyse</div>
+    <div class="score-card">
+      <div class="score-number" style="color:${scoreColor}">${d.score}<span style="font-size:24px;color:#333">/10</span></div>
+      <div class="score-label">${d.score_label||''}</div>
+      <div class="score-bar"><div class="score-fill" id="scoreFill" style="background:${scoreColor}"></div></div>
+    </div>
+
+    <div class="block">
+      <h3>⛔ Risques de refus Facebook</h3>
+      ${risquesHtml}
+    </div>
+
+    ${photosHtml}
+
+    <div class="row">
+      <div class="block"><h3>✓ Points forts</h3><ul>${fortsHtml}</ul></div>
+      <div class="block"><h3>✗ Points faibles</h3><ul>${faiblesHtml}</ul></div>
+    </div>
+
+    <div class="block">
+      <h3>✦ Annonce améliorée</h3>
+      <div class="improved-text">${d.annonce_amelioree}</div>
+    </div>
+
+    <div class="block">
+      <h3>🕐 Meilleures heures pour poster</h3>
+      <div class="hours-grid">${heuresHtml}</div>
+    </div>
+
+    <div class="alert alert-ok" style="margin-top:12px;">
+      💡 <strong>Conseil :</strong> ${d.conseil_final}
+    </div>
+
+    <div class="divider"></div>
+    <button class="btn-analyze" onclick="resetForm()" style="background:#111;border:1px solid #222;color:#888;">
+      Analyser une autre annonce
+    </button>
+  `;
+
+  setTimeout(()=>{
+    const fill = document.getElementById('scoreFill');
+    if(fill) fill.style.width = (d.score*10)+'%';
+  }, 100);
+}
+
+function resetForm(){
+  ['titre','description','prix'].forEach(id => document.getElementById(id).value='');
+  ['produit','canal','livraison'].forEach(id => document.getElementById(id).value='');
+  uploadedPhotos = [];
+  renderPreviews();
+  document.getElementById('result').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
